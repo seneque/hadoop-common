@@ -6,6 +6,9 @@ Release 2.6.0 - 2014-11-18
 
   NEW FEATURES
 
+    YARN-3144. Configuration for making delegation token failures to timeline
+    server not-fatal (Jonathan Eagles via jlowe)
+
     YARN-3393. Getting application(s) goes wrong when app finishes before
     starting the attempt. (Zhijie Shen via xgong)
 

@@ -126,6 +126,7 @@ public class YarnClientImpl extends YarnClient {
   @VisibleForTesting
   String timelineDTRenewer;
   protected boolean timelineServiceEnabled;
+  protected boolean timelineServiceBestEffort;
 
   private static final String ROOT = "root";
 
@@ -160,12 +161,20 @@ public class YarnClientImpl extends YarnClient {
     if (conf.getBoolean(YarnConfiguration.TIMELINE_SERVICE_ENABLED,
         YarnConfiguration.DEFAULT_TIMELINE_SERVICE_ENABLED)) {
       timelineServiceEnabled = true;
-      timelineClient = TimelineClient.createTimelineClient();
+      timelineClient = createTimelineClient();
       timelineClient.init(conf);
       timelineDTRenewer = getTimelineDelegationTokenRenewer(conf);
       timelineService = TimelineUtils.buildTimelineTokenService(conf);
     }
+
+    timelineServiceBestEffort = conf.getBoolean(
+        YarnConfiguration.TIMELINE_SERVICE_CLIENT_BEST_EFFORT,
+        YarnConfiguration.DEFAULT_TIMELINE_SERVICE_CLIENT_BEST_EFFORT);
     super.serviceInit(conf);
+  }
+
+  TimelineClient createTimelineClient() throws IOException, YarnException {
+    return TimelineClient.createTimelineClient();
   }
 
   @Override
@@ -322,7 +331,16 @@ public class YarnClientImpl extends YarnClient {
   @VisibleForTesting
   org.apache.hadoop.security.token.Token<TimelineDelegationTokenIdentifier>
       getTimelineDelegationToken() throws IOException, YarnException {
-    return timelineClient.getDelegationToken(timelineDTRenewer);
+        try {
+          return timelineClient.getDelegationToken(timelineDTRenewer);
+        } catch (Exception e ) {
+          if (timelineServiceBestEffort) {
+            LOG.warn("Failed to get delegation token from the timeline server: "
+                + e.getMessage());
+            return null;
+          }
+          throw e;
+        }
   }
 
   private static String getTimelineDelegationTokenRenewer(Configuration conf)
