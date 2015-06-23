@@ -15,3 +15,4 @@ org.apache.hadoop.hdfs.security.token.block.BlockTokenIdentifier
 org.apache.hadoop.hdfs.security.token.delegation.DelegationTokenIdentifier
 org.apache.hadoop.hdfs.security.token.delegation.DelegationTokenIdentifier$WebHdfsDelegationTokenIdentifier
 org.apache.hadoop.hdfs.security.token.delegation.DelegationTokenIdentifier$SWebHdfsDelegationTokenIdentifier
+org.apache.hadoop.hdfs.security.token.delegation.DelegationTokenIdentifier$HftpDelegationTokenIdentifier
