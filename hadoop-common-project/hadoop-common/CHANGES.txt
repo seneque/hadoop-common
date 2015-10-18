@@ -209,7 +209,7 @@ Release 2.6.0 - 2014-11-18
     HADOOP-11101. How about inputstream close statement from catch block to
     finally block in FileContext#copy() ( skrho via vinayakumarb )
 
-    HADOOP-8808. Update FsShell documentation to mention deprecation of some 
+    HADOOP-8808. Update FsShell documentation to mention deprecation of some
     of the commands, and mention alternatives (Akira AJISAKA via aw)
 
     HADOOP-10954. Adding site documents of hadoop-tools (Masatake Iwasaki 
@@ -1861,7 +1861,7 @@ Release 2.1.1-beta - 2013-09-23
     HADOOP-9350. Hadoop not building against Java7 on OSX
     (Robert Kanter via stevel)
 
-    HADOOP-9961. versions of a few transitive dependencies diverged between hadoop 
+    HADOOP-9961. versions of a few transitive dependencies diverged between hadoop
     subprojects. (rvs via tucu)
 
     HADOOP-9977. Hadoop services won't start with different keypass and
