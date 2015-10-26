@@ -14,6 +14,9 @@ Release 2.6.0 - 2014-11-18
 
   IMPROVEMENTS
 
+    HDFS-9305. Delayed heartbeat processing causes storm of subsequent
+    heartbeats. (Arpit Agarwal)
+
     HDFS-6613. Improve logging in caching classes. (wang)
 
     HDFS-6511. BlockManager#computeInvalidateWork() could do nothing. (Juan Yu via wang)
