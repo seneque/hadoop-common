@@ -22,6 +22,25 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import static org.apache.hadoop.fs.CreateFlag.CREATE;
+import static org.apache.hadoop.fs.CreateFlag.OVERWRITE;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.logging.Log;
@@ -44,25 +63,6 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.Cont
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.launcher.ContainerLaunch;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.ContainerLocalizer;
 import org.apache.hadoop.yarn.util.ConverterUtils;
-
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.net.InetSocketAddress;
-import static org.apache.hadoop.fs.CreateFlag.CREATE;
-import static org.apache.hadoop.fs.CreateFlag.OVERWRITE;
 
 /**
  * This executor will launch a docker container and run the task inside the container.
@@ -408,8 +408,12 @@ public class DockerContainerExecutor extends ContainerExecutor {
     for (Path baseDir : baseDirs) {
       Path del = subDir == null ? baseDir : new Path(baseDir, subDir);
       LOG.info("Deleting path : " + del);
-      if (!lfs.delete(del, true)) {
-        LOG.warn("delete returned false for path: [" + del + "]");
+      try {
+        if (!lfs.delete(del, true)) {
+          LOG.warn("delete returned false for path: [" + del + "]");
+        }
+      } catch (FileNotFoundException e) {
+        continue;
       }
     }
   }
