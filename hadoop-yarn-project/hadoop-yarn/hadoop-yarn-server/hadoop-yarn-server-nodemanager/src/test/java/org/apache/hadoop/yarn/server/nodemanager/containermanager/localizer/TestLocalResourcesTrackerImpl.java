@@ -136,12 +136,12 @@ public class TestLocalResourcesTrackerImpl {
       tracker.handle(rel21Event);
 
       dispatcher.await();
-      verifyTrackedResourceCount(tracker, 1);
+      verifyTrackedResourceCount(tracker, 2);
 
       // Verify resource with non zero ref count is not removed.
       Assert.assertEquals(2, lr1.getRefCount());
       Assert.assertFalse(tracker.remove(lr1, mockDelService));
-      verifyTrackedResourceCount(tracker, 1);
+      verifyTrackedResourceCount(tracker, 2);
 
       // Localize resource1
       ResourceLocalizedEvent rle =
@@ -156,7 +156,7 @@ public class TestLocalResourcesTrackerImpl {
 
       // Verify resources in state LOCALIZED with ref-count=0 is removed.
       Assert.assertTrue(tracker.remove(lr1, mockDelService));
-      verifyTrackedResourceCount(tracker, 0);
+      verifyTrackedResourceCount(tracker, 1);
     } finally {
       if (dispatcher != null) {
         dispatcher.stop();
@@ -774,6 +774,56 @@ public class TestLocalResourcesTrackerImpl {
       Assert.assertEquals(1, dirMgrRoot.getDirectory("4").getCount());
       Assert.assertEquals(2, dirMgrRoot.getDirectory("4/2").getCount());
       Assert.assertEquals(1, dirMgrRoot.getDirectory("4/3").getCount());
+    } finally {
+      if (dispatcher != null) {
+        dispatcher.stop();
+      }
+    }
+  }
+  
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testReleaseWhileDownloading() throws Exception {
+    String user = "testuser";
+    DrainDispatcher dispatcher = null;
+    try {
+      Configuration conf = new Configuration();
+      dispatcher = createDispatcher(conf);
+      EventHandler<LocalizerEvent> localizerEventHandler =
+          mock(EventHandler.class);
+      EventHandler<LocalizerEvent> containerEventHandler =
+          mock(EventHandler.class);
+      dispatcher.register(LocalizerEventType.class, localizerEventHandler);
+      dispatcher.register(ContainerEventType.class, containerEventHandler);
+
+      ContainerId cId = BuilderUtils.newContainerId(1, 1, 1, 1);
+      LocalizerContext lc = new LocalizerContext(user, cId, null);
+
+      LocalResourceRequest req =
+          createLocalResourceRequest(user, 1, 1, LocalResourceVisibility.PUBLIC);
+      LocalizedResource lr = createLocalizedResource(req, dispatcher);
+      ConcurrentMap<LocalResourceRequest, LocalizedResource> localrsrc =
+          new ConcurrentHashMap<LocalResourceRequest, LocalizedResource>();
+      localrsrc.put(req, lr);
+      LocalResourcesTracker tracker =
+          new LocalResourcesTrackerImpl(user, null, dispatcher, localrsrc,
+              false, conf, new NMNullStateStoreService());
+
+      // request the resource
+      ResourceEvent reqEvent =
+          new ResourceRequestEvent(req, LocalResourceVisibility.PUBLIC, lc);
+      tracker.handle(reqEvent);
+
+      // release the resource
+      ResourceEvent relEvent = new ResourceReleaseEvent(req, cId);
+      tracker.handle(relEvent);
+
+      // download completing after release
+      ResourceLocalizedEvent rle =
+          new ResourceLocalizedEvent(req, new Path("file:///tmp/r1"), 1);
+      tracker.handle(rle);
+
+      dispatcher.await();
     } finally {
       if (dispatcher != null) {
         dispatcher.stop();
