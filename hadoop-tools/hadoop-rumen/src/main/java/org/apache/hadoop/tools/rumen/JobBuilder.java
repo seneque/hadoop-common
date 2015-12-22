@@ -458,7 +458,7 @@ public class JobBuilder {
     task.setTaskStatus(getPre21Value(event.getTaskStatus()));
     TaskFailed t = (TaskFailed)(event.getDatum());
     task.putDiagnosticInfo(t.error.toString());
-    task.putFailedDueToAttemptId(t.failedDueToAttempt.toString());
+    task.putFailedDueToAttemptId(t.failedDueToAttempt == null ? null : t.failedDueToAttempt.toString());
     // No counters in TaskFailedEvent
   }
 
