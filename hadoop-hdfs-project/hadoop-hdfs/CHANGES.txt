@@ -13,6 +13,8 @@ Release 2.6.0 - 2014-11-18
     tasks below for features and contributors).
 
   IMPROVEMENTS
+    HDFS-9406. FSImage may get corrupted after deleting snapshot.
+    (Contributed by Jing Zhao, Stanislav Antic, Vinayakumar B, Yongjun Zhang)
 
     HDFS-9198. Coalesce IBR processing in the NN. (Daryn Sharp via umamahesh)
 
