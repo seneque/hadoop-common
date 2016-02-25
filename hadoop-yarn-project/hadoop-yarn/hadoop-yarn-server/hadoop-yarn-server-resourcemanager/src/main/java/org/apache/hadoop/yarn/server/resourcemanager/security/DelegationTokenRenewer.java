@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -301,15 +302,15 @@ public class DelegationTokenRenewer extends AbstractService {
    */
   private class RenewalTimerTask extends TimerTask {
     private DelegationTokenToRenew dttr;
-    private boolean cancelled = false;
+    private AtomicBoolean cancelled = new AtomicBoolean(false);
     
     RenewalTimerTask(DelegationTokenToRenew t) {  
       dttr = t;  
     }
     
     @Override
-    public synchronized void run() {
-      if (cancelled) {
+    public void run() {
+      if (cancelled.get()) {
         return;
       }
 
@@ -338,8 +339,8 @@ public class DelegationTokenRenewer extends AbstractService {
     }
 
     @Override
-    public synchronized boolean cancel() {
-      cancelled = true;
+    public boolean cancel() {
+      cancelled.set(true);
       return super.cancel();
     }
   }
