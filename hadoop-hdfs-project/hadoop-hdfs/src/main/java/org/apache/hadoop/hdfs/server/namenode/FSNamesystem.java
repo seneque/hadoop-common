@@ -4602,7 +4602,7 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
           iip.getLatestSnapshotId());
       NameNode.stateChangeLog.warn("BLOCK*"
         + " internalReleaseLease: All existing blocks are COMPLETE,"
-        + " lease removed, file closed.");
+        + " lease removed, file " + src + " closed.");
       return true;  // closed!
     }
 
@@ -4641,7 +4641,7 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
             iip.getLatestSnapshotId());
         NameNode.stateChangeLog.warn("BLOCK*"
           + " internalReleaseLease: Committed blocks are minimally replicated,"
-          + " lease removed, file closed.");
+          + " lease removed, file" + src + " closed.");
         return true;  // closed!
       }
       // Cannot close file right now, since some blocks 
@@ -4671,7 +4671,7 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
         finalizeINodeFileUnderConstruction(src, pendingFile,
             iip.getLatestSnapshotId());
         NameNode.stateChangeLog.warn("BLOCK* internalReleaseLease: "
-            + "Removed empty last block and closed file.");
+            + "Removed empty last block and closed file " + src);
         return true;
       }
       // start recovery of the last block for this file

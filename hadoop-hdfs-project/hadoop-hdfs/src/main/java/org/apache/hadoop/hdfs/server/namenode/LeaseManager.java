@@ -31,6 +31,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import static org.apache.hadoop.hdfs.DFSConfigKeys.*;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -40,6 +42,7 @@ import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.server.blockmanagement.BlockInfo;
 import org.apache.hadoop.hdfs.server.common.HdfsServerConstants;
 import org.apache.hadoop.util.Daemon;
+import org.apache.hadoop.conf.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -68,12 +71,17 @@ import com.google.common.base.Preconditions;
  */
 @InterfaceAudience.Private
 public class LeaseManager {
+
   public static final Log LOG = LogFactory.getLog(LeaseManager.class);
 
   private final FSNamesystem fsnamesystem;
 
   private long softLimit = HdfsConstants.LEASE_SOFTLIMIT_PERIOD;
   private long hardLimit = HdfsConstants.LEASE_HARDLIMIT_PERIOD;
+
+  /** Number max of path for released lease each time Monitor check for expired lease */
+  private final long maxPathRealeaseExpiredLease;
+
 
   //
   // Used for handling lock-leases
@@ -92,7 +100,12 @@ public class LeaseManager {
   private Daemon lmthread;
   private volatile boolean shouldRunMonitor;
 
-  LeaseManager(FSNamesystem fsnamesystem) {this.fsnamesystem = fsnamesystem;}
+  LeaseManager(FSNamesystem fsnamesystem) {
+    this.fsnamesystem = fsnamesystem;
+    Configuration conf = new Configuration();
+    this.maxPathRealeaseExpiredLease = conf.getLong(DFS_NAMENODE_MAX_PATH_RELEASE_EXPIRED_LEASE_KEY,
+      DFS_NAMENODE_MAX_PATH_RELEASE_EXPIRED_LEASE_DEFAULT);
+  }
 
   Lease getLease(String holder) {
     return leases.get(holder);
@@ -473,19 +486,23 @@ public class LeaseManager {
       leaseToCheck = sortedLeases.first();
     } catch(NoSuchElementException e) {}
 
+    long nPathReleaseExpiredLease = 0;
+
     while(leaseToCheck != null) {
       if (!leaseToCheck.expiredHardLimit()) {
         break;
       }
 
-      LOG.info(leaseToCheck + " has expired hard limit");
+      //LOG.info(leaseToCheck + " has expired hard limit");
+      final int nLeasePaths = leaseToCheck.getPaths().size();
+      LOG.warn(leaseToCheck + " has expired hard limit with " + nLeasePaths + "paths");
 
       final List<String> removing = new ArrayList<String>();
       // need to create a copy of the oldest lease paths, because 
       // internalReleaseLease() removes paths corresponding to empty files,
       // i.e. it needs to modify the collection being iterated over
       // causing ConcurrentModificationException
-      String[] leasePaths = new String[leaseToCheck.getPaths().size()];
+      String[] leasePaths = new String[nLeasePaths];
       leaseToCheck.getPaths().toArray(leasePaths);
       for(String p : leasePaths) {
         try {
@@ -512,6 +529,15 @@ public class LeaseManager {
       for(String p : removing) {
         removeLease(leaseToCheck, p);
       }
+
+      nPathReleaseExpiredLease += nLeasePaths;
+      // Stop releasing lease as a lock is hold after a few iterations
+      if (nPathReleaseExpiredLease >= maxPathRealeaseExpiredLease) {
+        LOG.warn("Breaking out of checkLeases() after " + nPathReleaseExpiredLease + " iterations",
+          new Throwable("Too long loop with a lock"));
+        break;
+      }
+
       leaseToCheck = sortedLeases.higher(leaseToCheck);
     }
 

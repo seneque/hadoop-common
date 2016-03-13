@@ -365,6 +365,8 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
   public static final int     DFS_NAMENODE_MAX_XATTRS_PER_INODE_DEFAULT = 32;
   public static final String  DFS_NAMENODE_MAX_XATTR_SIZE_KEY = "dfs.namenode.fs-limits.max-xattr-size";
   public static final int     DFS_NAMENODE_MAX_XATTR_SIZE_DEFAULT = 16384;
+  public static final String  DFS_NAMENODE_MAX_PATH_RELEASE_EXPIRED_LEASE_KEY = "dfs.namenode.max-path-release-expired-lease";
+  public static final long    DFS_NAMENODE_MAX_PATH_RELEASE_EXPIRED_LEASE_DEFAULT = 100000;
 
 
   //Following keys have no defaults

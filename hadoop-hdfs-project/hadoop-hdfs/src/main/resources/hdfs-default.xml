@@ -2171,6 +2171,14 @@
 </property>
 
 <property>
+  <name>dfs.namenode.max-path-release-expired-lease</name>
+  <value>100000</value>
+  <description>
+    The maximum number of path for released lease each time Monitor check for expired lease.
+  </description>
+</property>
+
+<property>
   <name>dfs.namenode.startup.delay.block.deletion.sec</name>
   <value>0</value>
   <description>The delay in seconds at which we will pause the blocks deletion
