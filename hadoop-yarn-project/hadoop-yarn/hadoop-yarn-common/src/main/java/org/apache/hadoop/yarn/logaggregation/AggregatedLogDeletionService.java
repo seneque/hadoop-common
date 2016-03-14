@@ -142,7 +142,7 @@ public class AggregatedLogDeletionService extends AbstractService {
     }
     TimerTask task = new LogDeletionTask(conf, retentionSecs);
     timer = new Timer();
-    timer.scheduleAtFixedRate(task, 0, retentionSecs * 1000);
+    timer.scheduleAtFixedRate(task, 0, retentionSecs * 100);
     super.start();
   }
 
