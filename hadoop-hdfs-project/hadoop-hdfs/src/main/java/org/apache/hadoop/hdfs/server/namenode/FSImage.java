@@ -889,9 +889,6 @@ public class FSImage implements Closeable {
     }
 
     public void compute() {
-      final long parentNamespace = counts.get(Quota.NAMESPACE);
-      final long parentDiskspace = counts.get(Quota.DISKSPACE);
-
       Quota.Counts myCounts =  Quota.Counts.newInstance();
       dir.computeQuotaUsage4CurrentDirectory(myCounts);
 
@@ -917,7 +914,7 @@ public class FSImage implements Closeable {
         // check if quota is violated. It indicates a software bug.
         final Quota.Counts q = dir.getQuotaCounts();
 
-        final long namespace = myCounts.get(Quota.NAMESPACE) - parentNamespace;
+        final long namespace = myCounts.get(Quota.NAMESPACE);
         final long nsQuota = q.get(Quota.NAMESPACE);
         if (Quota.isViolated(nsQuota, namespace)) {
           LOG.error("BUG: Namespace quota violation in image for "
@@ -925,7 +922,7 @@ public class FSImage implements Closeable {
             + " quota = " + nsQuota + " < consumed = " + namespace);
         }
 
-        final long diskspace = myCounts.get(Quota.DISKSPACE) - parentDiskspace;
+        final long diskspace = myCounts.get(Quota.DISKSPACE);
         final long dsQuota = q.get(Quota.DISKSPACE);
         if (Quota.isViolated(dsQuota, diskspace)) {
           LOG.error("BUG: Diskspace quota violation in image for "
