@@ -44,14 +44,18 @@ public interface ApplicationContext {
       throws YarnException, IOException;
 
   /**
-   * This method returns all Application {@link ApplicationReport}s
-   * 
+   * This method returns the given number of Application
+   * {@link ApplicationReport}s.
+   *
+   * @param appsNum
+   *
    * @return map of {@link ApplicationId} to {@link ApplicationReport}s.
    * @throws YarnException
    * @throws IOException
    */
-  Map<ApplicationId, ApplicationReport> getAllApplications()
-      throws YarnException, IOException;
+  Map<ApplicationId, ApplicationReport>
+      getApplications(long appsNum) throws YarnException,
+          IOException;
 
   /**
    * Application can have multiple application attempts
