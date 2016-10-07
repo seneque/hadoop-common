@@ -6,6 +6,9 @@ Release 2.6.0 - 2014-11-18
 
   NEW FEATURES
 
+    YARN-3700. Made generic history service load a number of latest applications
+    according to the parameter or the configuration. (Xuan Gong via zjshen)
+
     YARN-3144. Configuration for making delegation token failures to timeline
     server not-fatal (Jonathan Eagles via jlowe)
 
