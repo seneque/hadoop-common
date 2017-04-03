@@ -83,6 +83,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairSchedule
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoScheduler;
 import org.apache.hadoop.yarn.sls.SLSRunner;
 import org.apache.hadoop.yarn.sls.conf.SLSConfiguration;
+import org.apache.hadoop.yarn.sls.utils.ClockHolder;
 import org.apache.hadoop.yarn.sls.web.SLSWebApp;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.log4j.Logger;
@@ -668,6 +669,7 @@ public class ResourceSchedulerWrapper
             .formatFor(Locale.US)
             .convertRatesTo(TimeUnit.SECONDS)
             .convertDurationsTo(TimeUnit.MILLISECONDS)
+            .withClock(ClockHolder.getInstance())
             .build(new File(metricsOutputDir + "/metrics"));
     reporter.start(timeIntervalMS, TimeUnit.MILLISECONDS);
   }

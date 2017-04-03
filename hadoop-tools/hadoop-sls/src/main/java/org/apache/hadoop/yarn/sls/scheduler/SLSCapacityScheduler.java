@@ -21,6 +21,7 @@ import org.apache.hadoop.util.ShutdownHookManager;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.*;
 import org.apache.hadoop.yarn.sls.SLSRunner;
 import org.apache.hadoop.yarn.sls.conf.SLSConfiguration;
+import org.apache.hadoop.yarn.sls.utils.ClockHolder;
 import org.apache.hadoop.yarn.sls.web.SLSWebApp;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.CsvReporter;
@@ -658,6 +659,7 @@ public class SLSCapacityScheduler extends CapacityScheduler implements
             .formatFor(Locale.US)
             .convertRatesTo(TimeUnit.SECONDS)
             .convertDurationsTo(TimeUnit.MILLISECONDS)
+            .withClock(ClockHolder.getInstance())
             .build(new File(metricsOutputDir + "/metrics"));
     reporter.start(timeIntervalMS, TimeUnit.MILLISECONDS);
   }

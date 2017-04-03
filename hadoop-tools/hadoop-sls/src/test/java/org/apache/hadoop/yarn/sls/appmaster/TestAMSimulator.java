@@ -26,6 +26,8 @@ import org.apache.hadoop.yarn.sls.conf.SLSConfiguration;
 import org.apache.hadoop.yarn.sls.scheduler.ContainerSimulator;
 import org.apache.hadoop.yarn.sls.scheduler.FairSchedulerMetrics;
 import org.apache.hadoop.yarn.sls.scheduler.SchedulerWrapper;
+import org.apache.hadoop.yarn.util.Clock;
+import org.apache.hadoop.yarn.util.UTCClock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -60,6 +62,10 @@ public class TestAMSimulator {
   }
 
   class MockAMSimulator extends AMSimulator {
+
+    public MockAMSimulator(Clock clock){
+      super(clock);
+    }
     @Override
     protected void processResponseQueue()
         throws InterruptedException, YarnException, IOException {
@@ -107,8 +113,9 @@ public class TestAMSimulator {
 
   @Test
   public void testAMSimulator() throws Exception {
+    UTCClock clock = new UTCClock();
     // Register one app
-    MockAMSimulator app = new MockAMSimulator();
+    MockAMSimulator app = new MockAMSimulator(clock);
     String appId = "app1";
     String queue = "default";
     List<ContainerSimulator> containers = new ArrayList<>();
