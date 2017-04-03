@@ -91,7 +91,7 @@ public abstract class AbstractYarnScheduler
   private long configuredMaximumAllocationWaitTime;
 
   protected RMContext rmContext;
-  protected Map<ApplicationId, SchedulerApplication<T>> applications;
+  protected volatile Map<ApplicationId, SchedulerApplication<T>> applications;
   protected int nmExpireInterval;
 
   protected final static List<Container> EMPTY_CONTAINER_LIST =
@@ -432,21 +432,27 @@ public abstract class AbstractYarnScheduler
     new Timer().schedule(new TimerTask() {
       @Override
       public void run() {
-        for (SchedulerApplication<T> app : applications.values()) {
+        if(applications !=null) {
+          for (SchedulerApplication<T> app : applications.values()) {
 
-          T attempt = app.getCurrentAppAttempt();
-          synchronized (attempt) {
-            for (ContainerId containerId : attempt.getPendingRelease()) {
-              RMAuditLogger.logFailure(
-                app.getUser(),
-                AuditConstants.RELEASE_CONTAINER,
-                "Unauthorized access or invalid container",
-                "Scheduler",
-                "Trying to release container not owned by app or with invalid id.",
-                attempt.getApplicationId(), containerId);
+            T attempt = app.getCurrentAppAttempt();
+            if (attempt != null) {
+              synchronized (attempt) {
+                for (ContainerId containerId : attempt.getPendingRelease()) {
+                  RMAuditLogger.logFailure(
+                          app.getUser(),
+                          AuditConstants.RELEASE_CONTAINER,
+                          "Unauthorized access or invalid container",
+                          "Scheduler",
+                          "Trying to release container not owned by app or with invalid id.",
+                          attempt.getApplicationId(), containerId);
+                }
+                attempt.getPendingRelease().clear();
+              }
             }
-            attempt.getPendingRelease().clear();
           }
+        } else {
+          LOG.info("applications was null");
         }
         LOG.info("Release request cache is cleaned up");
       }
