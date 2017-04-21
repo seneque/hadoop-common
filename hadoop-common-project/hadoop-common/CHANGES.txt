@@ -16,6 +16,9 @@ Release 2.6.0 - 2014-11-18
 
   IMPROVEMENTS
 
+    HADOOP-12054. RPC client should not retry for InvalidToken exceptions.
+    (Varun Saxena via Arpit Agarwal)
+
     HADOOP-10808. Remove unused native code for munlock. (cnauroth)
 
     HADOOP-10815. Implement Windows equivalent of mlock. (cnauroth)
