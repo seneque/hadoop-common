@@ -387,4 +387,6 @@ public class MRAMSimulator extends AMSimulator {
     scheduledReduces.clear();
     responseQueue.clear();
   }
+
+
 }

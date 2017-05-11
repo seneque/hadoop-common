@@ -114,8 +114,8 @@ public class SLSCapacityScheduler extends CapacityScheduler implements
 
   private Configuration conf;
  
-  private Map<ApplicationId, String> appQueueMap =
-          new ConcurrentHashMap<ApplicationId, String>();
+  private Map<ApplicationAttemptId, String> appQueueMap =
+          new ConcurrentHashMap<ApplicationAttemptId, String>();
   private BufferedWriter jobRuntimeLogBW;
 
   // Priority of the ResourceSchedulerWrapper shutdown hook.
@@ -245,7 +245,7 @@ public class SLSCapacityScheduler extends CapacityScheduler implements
 	            (AppAttemptRemovedSchedulerEvent) schedulerEvent;
 	        ApplicationAttemptId appAttemptId =
 	                appRemoveEvent.getApplicationAttemptID();
-	        String queue = appQueueMap.get(appAttemptId.getApplicationId());
+	        String queue = appQueueMap.get(appAttemptId);
 	        SchedulerAppReport app = super.getSchedulerAppInfo(appAttemptId);
 	        if (! app.getLiveContainers().isEmpty()) {  // have 0 or 1
 	          // should have one container which is AM container
@@ -267,20 +267,21 @@ public class SLSCapacityScheduler extends CapacityScheduler implements
 	      schedulerHandleCounter.inc();
 	      schedulerHandleCounterMap.get(schedulerEvent.getType()).inc();
 
-	      if (schedulerEvent.getType() == SchedulerEventType.APP_REMOVED
-	          && schedulerEvent instanceof AppRemovedSchedulerEvent) {
+	      if (schedulerEvent.getType() == SchedulerEventType.APP_ATTEMPT_REMOVED
+	          && schedulerEvent instanceof AppAttemptRemovedSchedulerEvent) {
 	        SLSRunner.decreaseRemainingApps();
-            AppRemovedSchedulerEvent appRemoveEvent =
-	                (AppRemovedSchedulerEvent) schedulerEvent;
-	        ApplicationId appAttemptId =
-	                appRemoveEvent.getApplicationID();
-	        appQueueMap.remove(appAttemptId);
-	      } else if (schedulerEvent.getType() == SchedulerEventType.APP_ADDED
-	          && schedulerEvent instanceof AppAddedSchedulerEvent) {
-            AppAddedSchedulerEvent appAddEvent =
-	                (AppAddedSchedulerEvent) schedulerEvent;
-	        String queueName = appAddEvent.getQueue();
-	        appQueueMap.put(appAddEvent.getApplicationId(), queueName);
+          AppAttemptRemovedSchedulerEvent appRemoveEvent =
+	                (AppAttemptRemovedSchedulerEvent) schedulerEvent;
+	        appQueueMap.remove(appRemoveEvent.getApplicationAttemptID());
+	      } else if (schedulerEvent.getType() == SchedulerEventType.APP_ATTEMPT_ADDED
+	          && schedulerEvent instanceof AppAttemptAddedSchedulerEvent) {
+          AppAttemptAddedSchedulerEvent appAddEvent =
+	                (AppAttemptAddedSchedulerEvent) schedulerEvent;
+          SchedulerApplication app =
+            applications.get(appAddEvent.getApplicationAttemptId()
+              .getApplicationId());
+	        appQueueMap.put(appAddEvent.getApplicationAttemptId(), app.getQueue()
+            .getQueueName());
 	      }
 	    }
   }
@@ -334,7 +335,7 @@ public class SLSCapacityScheduler extends CapacityScheduler implements
     // update queue information
     Resource pendingResource = Resources.createResource(0, 0);
     Resource allocatedResource = Resources.createResource(0, 0);
-    String queueName = appQueueMap.get(attemptId.getApplicationId());
+    String queueName = appQueueMap.get(attemptId);
     // container requested
     for (ResourceRequest request : resourceRequests) {
       if (request.getResourceName().equals(ResourceRequest.ANY)) {
